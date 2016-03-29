@@ -119,14 +119,14 @@ Query::Query(const sc::CannedQuery &query, const sc::SearchMetadata &metadata, Q
         client_(config),
         m_pref(DEFAULT_PREF)
 {
-    qDebug() << "CacheDir: " << m_cacheDir;
-    qDebug() << "ScopeDir " <<  m_scopeDir;
+//    qDebug() << "CacheDir: " << m_cacheDir;
+//    qDebug() << "ScopeDir " <<  m_scopeDir;
 
     QMap<QString,QString> map;
     map["format"] = "xml";
 
     m_urlRSS = getUrl(DEPARTMENTS,  map);
-    qDebug() << "m_urlRSS: " << m_urlRSS;
+//    qDebug() << "m_urlRSS: " << m_urlRSS;
 
     m_errorImage = "file://"+ m_scopeDir + "/images/error.png";
 }
@@ -136,7 +136,7 @@ void Query::cancelled() {
 }
 
 void Query::run(sc::SearchReplyProxy const& reply) {
-    qDebug() <<  "Run is started .............................!";
+//    qDebug() <<  "Run is started .............................!";
 
     // Initialize the scopes
     initScope();
@@ -145,7 +145,7 @@ void Query::run(sc::SearchReplyProxy const& reply) {
     // Get the current location of the search
     auto metadata = search_metadata();
     if ( metadata.has_location() ) {
-        qDebug() << "Location is supported!";
+//        qDebug() << "Location is supported!";
         auto location = metadata.location();
 
         if ( location.has_altitude()) {
@@ -181,8 +181,10 @@ void Query::run(sc::SearchReplyProxy const& reply) {
     sc::Filters filters;
     const sc::CannedQuery &myquery(sc::SearchQueryBase::query());
 
+    qDebug() << "m_pref:     " << m_pref;
+
     sc::OptionSelectorFilter::SPtr prefFilter = sc::OptionSelectorFilter::create("category",
-                                             m_sortPref[DEFAULT_PREF].toStdString());
+                                             m_pref.toStdString());
 
     prefFilter->set_display_hints(1);
 
@@ -192,10 +194,10 @@ void Query::run(sc::SearchReplyProxy const& reply) {
         qDebug() << i.key() << ": " << i.value();
         prefFilter->add_option(i.key().toStdString(), i.value().toStdString());
         prefFilter->active_options(myquery.filter_state());
-        filters.push_back(prefFilter);
     }
 
-    reply->push(filters, myquery.filter_state());
+    filters.push_back(prefFilter);
+    reply->push(filters, myquery.filter_state());        
 
     if (prefFilter->has_active_option(myquery.filter_state())){
         auto o = *(prefFilter->active_options(myquery.filter_state()).begin());
@@ -228,14 +230,14 @@ void Query::run(sc::SearchReplyProxy const& reply) {
 
         CannedQuery cannedQuery = query();
         QString deptId = qstr(cannedQuery.department_id());
-        qDebug() << "department id: " << deptId;
+//        qDebug() << "department id: " << deptId;
 
         if (!query().department_id().empty()){ // needs departments support
-            qDebug() << "it is not empty xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!";
+//            qDebug() << "it is not empty xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!";
             deptUrl = m_depts[deptId];
-            qDebug() << "depatUrl: " << deptUrl;
+//            qDebug() << "depatUrl: " << deptUrl;
         } else {
-            qDebug() << "It is empty ===================================!";
+//            qDebug() << "It is empty ===================================!";
         }
 
         if ( deptUrl.isEmpty() )
@@ -297,9 +299,9 @@ QString Query::getUrl(QString addr, QMap<QString, QString> map) {
 
     temp.append(secret);
 
-    qDebug() << temp;
+//    qDebug() << temp;
 
-    qDebug() << "UTF-8: " << temp.toUtf8();
+//    qDebug() << "UTF-8: " << temp.toUtf8();
 
     generator.addData(temp.toUtf8());
     QString sign = generator.result().toHex().toUpper();
@@ -320,7 +322,7 @@ QString Query::getUrl(QString addr, QMap<QString, QString> map) {
         url.append("&").append(i.key()).append("=").append(i.value());
     }
 
-    qDebug() << "Final url: " << url;
+//    qDebug() << "Final url: " << url;
     return url;
 }
 
@@ -334,8 +336,8 @@ QString Query::getDeptUrl(QString dept)
     map["platform"] = "2";
     map["format"] = "xml";
 
-    qDebug() << "m_latitude: " << m_latitude;
-    qDebug() << "m_longitude: " << m_longitude;
+//    qDebug() << "m_latitude: " << m_latitude;
+//    qDebug() << "m_longitude: " << m_longitude;
 
     map["latitude"] = m_latitude;
     map["longitude"] = m_longitude;
@@ -380,7 +382,7 @@ QString Query::rssDepartments( QByteArray &data, unity::scopes::SearchReplyProxy
     while ( !docElem.isNull() ) {
 
         QString category = docElem.attribute("name","");
-        qDebug() << "category: " << category;
+//        qDebug() << "category: " << category;
 
         if ( !category.isEmpty() ) {
             QString url = getDeptUrl(category);
@@ -409,7 +411,7 @@ QString Query::rssDepartments( QByteArray &data, unity::scopes::SearchReplyProxy
     QMapIterator<QString, QString> i(m_depts);
     while (i.hasNext()) {
         i.next();
-         qDebug() << i.key() << ": " << i.value();
+//         qDebug() << i.key() << ": " << i.value();
     }
 
     topDept->set_subdepartments( rss_depts );
@@ -577,4 +579,6 @@ void Query::initFilerData() {
     m_sortPref["7"] = "离传入经纬度坐标距离近优先";
     m_sortPref["8"] = "人均价格低优先";
     m_sortPref["9"] = "人均价格高优先";
+
+    m_pref = m_sortPref[DEFAULT_PREF];
 }
